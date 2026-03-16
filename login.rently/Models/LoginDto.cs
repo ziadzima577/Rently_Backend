@@ -5,9 +5,9 @@ namespace login.rently.Models
     public class LoginDto
     {
         [Required]
-        public string EmailOrPhone { get; set; }
+        public string Email { get; set; } = string.Empty; // تأكد أن الاسم مطابق لما نستخدمه في الـ Controller
 
         [Required]
-        public string Password { get; set; }
+        public string Password { get; set; } = string.Empty;
     }
 }

@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using login.rently.Data;
 using login.rently.Models;
-using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
 
 namespace login.rently.Controllers
 {
@@ -17,71 +16,58 @@ namespace login.rently.Controllers
             _context = context;
         }
 
-       
+        // 1. تسجيل أدمن جديد (Register)
         [HttpPost("register")]
-        public async Task<IActionResult> Register(User user)
+        public async Task<IActionResult> Register([FromBody] AdminRegisterDto model)
         {
-            _context.Users.Add(user);
+            // التأكد إن الإيميل مش موجود قبل كدة
+            if (await _context.Admins.AnyAsync(a => a.Email == model.Email))
+            {
+                return BadRequest("هذا البريد الإلكتروني مسجل بالفعل.");
+            }
+
+            var newAdmin = new Admin
+            {
+                FullName = model.FullName,
+                Email = model.Email,
+                PasswordHash = model.Password, // بنستخدم PasswordHash عشان يطابق الـ SQL
+                CreatedAt = DateTime.Now,
+                IsActive = true
+            };
+
+            _context.Admins.Add(newAdmin);
             await _context.SaveChangesAsync();
-            return Ok("User Registered Successfully!");
+
+            return Ok(new { message = "تم تسجيل الأدمن بنجاح!" });
         }
 
-        
+        // 2. تسجيل الدخول (Login)
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginData)
+        public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
-            
-            var user = await _context.Users.FirstOrDefaultAsync(u =>
-                (u.Email == loginData.EmailOrPhone || u.PhoneNumber == loginData.EmailOrPhone)
-                && u.PasswordHash == loginData.Password);
+            // البحث باستخدام UserId و PasswordHash المطابقين للـ SQL
+            var user = await _context.Admins
+                .FirstOrDefaultAsync(a => a.Email == model.Email && a.PasswordHash == model.Password);
 
             if (user == null)
             {
-                return Unauthorized("بيانات الدخول غير صحيحة");
+                return Unauthorized("الإيميل أو كلمة المرور غير صحيحة.");
             }
 
-            return Ok(new { message = "login succesfully ", userName = user.FullName });
-
-
-
+            return Ok(new
+            {
+                message = "تم تسجيل الدخول بنجاح",
+                adminId = user.UserId, // تم التعديل لـ UserId
+                fullName = user.FullName
+            });
         }
+    }
 
-        [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword(string email)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null) return BadRequest("الإيميل ده مش متسجل عندنا");
-
-            
-            var otpCode = new Random().Next(100000, 999999).ToString();
-
-            user.PasswordResetToken = otpCode;
-            user.ResetTokenExpires = DateTime.Now.AddMinutes(15); 
-
-            await _context.SaveChangesAsync();
-
-            
-            return Ok(new { message = "تم توليد كود التحقق", code = otpCode });
-        }
-
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword(string email, string token, string newPassword)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-
-            if (user == null || user.PasswordResetToken != token || user.ResetTokenExpires < DateTime.Now)
-                return BadRequest("الكود غلط أو صلاحيته انتهت");
-
-            
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-
-            
-            user.PasswordResetToken = null;
-            user.ResetTokenExpires = null;
-
-            await _context.SaveChangesAsync();
-            return Ok("مبروك، الباسورد اتغير بنجاح!");
-        }
-
+    // كلاس وسيط لعملية التسجيل (عشان الـ Swagger يطلب بيانات محددة بس)
+    public class AdminRegisterDto
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }

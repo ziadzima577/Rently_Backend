@@ -54,11 +54,10 @@ namespace login.rently.Controllers
                 return Unauthorized("الإيميل أو كلمة المرور غير صحيحة.");
             }
 
-            return Ok(new
-            {
-                message = "تم تسجيل الدخول بنجاح",
+            return Ok(new { 
+                message = "تم تسجيل الدخول بنجاح", 
                 adminId = user.UserId, // تم التعديل لـ UserId
-                fullName = user.FullName
+                fullName = user.FullName 
             });
         }
     }

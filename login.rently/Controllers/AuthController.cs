@@ -22,7 +22,7 @@ namespace login.rently.Controllers
             string? email = null;
             string? phone = null;
 
-            // تحديد نوع المدخل (إيميل أم هاتف)
+           
             if (model.EmailOrPhone.Contains("@"))
             {
                 email = model.EmailOrPhone.Trim().ToLower();
@@ -32,14 +32,14 @@ namespace login.rently.Controllers
                 phone = model.EmailOrPhone.Trim();
             }
 
-            // التحقق من التكرار لمنع Error 500
+            
             if (email != null && await _context.Admins.AnyAsync(a => a.Email == email))
                 return BadRequest("هذا الإيميل مسجل بالفعل.");
 
             if (phone != null && await _context.Admins.AnyAsync(a => a.PhoneNumber == phone))
                 return BadRequest("رقم التليفون مسجل بالفعل.");
 
-            // تجميع تاريخ الميلاد
+          
             DateTime? birthDate = null;
             try
             {
@@ -78,7 +78,7 @@ namespace login.rently.Controllers
             return Ok(new { message = $"أهلاً بك يا {user.FirstName}", adminId = user.UserId });
         }
 
-        // دالة مساعدة لتحويل اسم الشهر لرقم
+      
         private int GetMonthNumber(string month)
         {
             return month.ToLower() switch
@@ -95,12 +95,12 @@ namespace login.rently.Controllers
                 "october" or "10" => 10,
                 "november" or "11" => 11,
                 "december" or "12" => 12,
-                _ => 1 // القيمة الافتراضية شهر يناير
+                _ => 1
             };
         }
     }
 
-    // الـ DTOs المحدثة بناءً على واجهة المستخدم
+   
     public class RegisterRequestDto
     {
         public required string FirstName { get; set; }

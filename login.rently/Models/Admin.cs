@@ -12,7 +12,7 @@ namespace login.rently.Models
         public string? PhoneNumber { get; set; }
         public string PasswordHash { get; set; } = string.Empty;
 
-        // الحقول الجديدة من التصميم
+       
         public DateTime? BirthDate { get; set; }
         public string? Gender { get; set; }
 

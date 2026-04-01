@@ -12,7 +12,7 @@ namespace login.rently
 
             // Add services to the container.
 
-            // السطر ده هو "الوصلة" اللي ناقصة
+          
             builder.Services.AddDbContext<login.rently.Data.ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -27,7 +27,7 @@ namespace login.rently
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

@@ -12,8 +12,8 @@ using login.rently.Data;
 namespace login.rently.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260316061902_FinalDatabaseCheck")]
-    partial class FinalDatabaseCheck
+    [Migration("20260401210426_InitialFinal")]
+    partial class InitialFinal
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,20 +27,32 @@ namespace login.rently.Migrations
 
             modelBuilder.Entity("login.rently.Models.Admin", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
+                    b.Property<DateTime?>("BirthDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -48,19 +60,12 @@ namespace login.rently.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordResetToken")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ResetTokenExpires")
-                        .HasColumnType("datetime2");
+                    b.HasKey("UserId");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("Admins");
+                    b.ToTable("Admins", (string)null);
                 });
 
             modelBuilder.Entity("login.rently.Models.Booking", b =>
@@ -106,7 +111,7 @@ namespace login.rently.Migrations
 
                     b.HasIndex("renterid");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("booking", (string)null);
                 });
 
             modelBuilder.Entity("login.rently.Models.Item", b =>
@@ -147,7 +152,7 @@ namespace login.rently.Migrations
 
                     b.HasIndex("lenderid");
 
-                    b.ToTable("Items");
+                    b.ToTable("item", (string)null);
                 });
 
             modelBuilder.Entity("login.rently.Models.Lender", b =>
@@ -210,7 +215,7 @@ namespace login.rently.Migrations
 
                     b.HasIndex("renterid");
 
-                    b.ToTable("Messages");
+                    b.ToTable("message", (string)null);
                 });
 
             modelBuilder.Entity("login.rently.Models.Payment", b =>
@@ -248,7 +253,7 @@ namespace login.rently.Migrations
 
                     b.HasIndex("renterid");
 
-                    b.ToTable("Payments");
+                    b.ToTable("payment", (string)null);
                 });
 
             modelBuilder.Entity("login.rently.Models.Renter", b =>
@@ -313,7 +318,7 @@ namespace login.rently.Migrations
 
                     b.HasIndex("bookingid");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("review", (string)null);
                 });
 
             modelBuilder.Entity("login.rently.Models.Booking", b =>
@@ -321,25 +326,25 @@ namespace login.rently.Migrations
                     b.HasOne("login.rently.Models.Admin", "admin")
                         .WithMany()
                         .HasForeignKey("adminid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("login.rently.Models.Item", "item")
                         .WithMany()
                         .HasForeignKey("itemid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("login.rently.Models.Lender", "lender")
                         .WithMany()
                         .HasForeignKey("lenderid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("login.rently.Models.Renter", "renter")
                         .WithMany()
                         .HasForeignKey("renterid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("admin");
@@ -356,13 +361,13 @@ namespace login.rently.Migrations
                     b.HasOne("login.rently.Models.Admin", "admin")
                         .WithMany()
                         .HasForeignKey("adminid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("login.rently.Models.Lender", "lender")
                         .WithMany()
                         .HasForeignKey("lenderid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("admin");
@@ -375,7 +380,7 @@ namespace login.rently.Migrations
                     b.HasOne("login.rently.Models.Admin", "admin")
                         .WithMany()
                         .HasForeignKey("adminid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("admin");
@@ -386,13 +391,13 @@ namespace login.rently.Migrations
                     b.HasOne("login.rently.Models.Lender", "lender")
                         .WithMany()
                         .HasForeignKey("lenderid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("login.rently.Models.Renter", "renter")
                         .WithMany()
                         .HasForeignKey("renterid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("lender");
@@ -405,19 +410,19 @@ namespace login.rently.Migrations
                     b.HasOne("login.rently.Models.Admin", "admin")
                         .WithMany()
                         .HasForeignKey("adminid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("login.rently.Models.Booking", "booking")
                         .WithMany()
                         .HasForeignKey("bookingid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("login.rently.Models.Renter", "renter")
                         .WithMany()
                         .HasForeignKey("renterid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("admin");
@@ -432,7 +437,7 @@ namespace login.rently.Migrations
                     b.HasOne("login.rently.Models.Admin", "Admins")
                         .WithMany()
                         .HasForeignKey("adminid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Admins");
@@ -443,7 +448,7 @@ namespace login.rently.Migrations
                     b.HasOne("login.rently.Models.Booking", "booking")
                         .WithMany()
                         .HasForeignKey("bookingid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("booking");

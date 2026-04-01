@@ -24,6 +24,11 @@ namespace login.rently.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+            {
+                relationship.DeleteBehavior = DeleteBehavior.Restrict;
+            }
+
             // إعدادات إضافية للتأكد من توافق المسميات مع SQL
             modelBuilder.Entity<Admin>().ToTable("Admins"); //
             modelBuilder.Entity<Item>().ToTable("item"); //
@@ -31,6 +36,7 @@ namespace login.rently.Data
             modelBuilder.Entity<Payment>().ToTable("payment"); //
             modelBuilder.Entity<Review>().ToTable("review"); //
             modelBuilder.Entity<Message>().ToTable("message"); //
+            
         }
     }
 }

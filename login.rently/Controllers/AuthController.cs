@@ -16,57 +16,106 @@ namespace login.rently.Controllers
             _context = context;
         }
 
-        // 1. تسجيل أدمن جديد (Register)
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] AdminRegisterDto model)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto model)
         {
-            // التأكد إن الإيميل مش موجود قبل كدة
-            if (await _context.Admins.AnyAsync(a => a.Email == model.Email))
+            string? email = null;
+            string? phone = null;
+
+            // تحديد نوع المدخل (إيميل أم هاتف)
+            if (model.EmailOrPhone.Contains("@"))
             {
-                return BadRequest("هذا البريد الإلكتروني مسجل بالفعل.");
+                email = model.EmailOrPhone.Trim().ToLower();
             }
+            else
+            {
+                phone = model.EmailOrPhone.Trim();
+            }
+
+            // التحقق من التكرار لمنع Error 500
+            if (email != null && await _context.Admins.AnyAsync(a => a.Email == email))
+                return BadRequest("هذا الإيميل مسجل بالفعل.");
+
+            if (phone != null && await _context.Admins.AnyAsync(a => a.PhoneNumber == phone))
+                return BadRequest("رقم التليفون مسجل بالفعل.");
+
+            // تجميع تاريخ الميلاد
+            DateTime? birthDate = null;
+            try
+            {
+                birthDate = new DateTime(model.BirthYear, GetMonthNumber(model.BirthMonth), model.BirthDay);
+            }
+            catch { /* في حال كان التاريخ غير صحيح */ }
 
             var newAdmin = new Admin
             {
-                FullName = model.FullName,
-                Email = model.Email,
-                PasswordHash = model.Password, // بنستخدم PasswordHash عشان يطابق الـ SQL
-                CreatedAt = DateTime.Now,
-                IsActive = true
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Email = email ?? $"user_{Guid.NewGuid().ToString().Substring(0, 8)}@rently.com",
+                PhoneNumber = phone,
+                PasswordHash = model.Password,
+                BirthDate = birthDate,
+                Gender = model.Gender,
+                CreatedAt = DateTime.Now
             };
 
             _context.Admins.Add(newAdmin);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "تم تسجيل الأدمن بنجاح!" });
+            return Ok(new { message = "تم إنشاء حساب Rently بنجاح!" });
         }
 
-        // 2. تسجيل الدخول (Login)
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto model)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto model)
         {
-            // البحث باستخدام UserId و PasswordHash المطابقين للـ SQL
             var user = await _context.Admins
-                .FirstOrDefaultAsync(a => a.Email == model.Email && a.PasswordHash == model.Password);
+                .FirstOrDefaultAsync(a =>
+                    (a.Email == model.EmailOrPhone || a.PhoneNumber == model.EmailOrPhone)
+                    && a.PasswordHash == model.Password);
 
-            if (user == null)
+            if (user == null) return Unauthorized("بيانات الدخول غير صحيحة.");
+
+            return Ok(new { message = $"أهلاً بك يا {user.FirstName}", adminId = user.UserId });
+        }
+
+        // دالة مساعدة لتحويل اسم الشهر لرقم
+        private int GetMonthNumber(string month)
+        {
+            return month.ToLower() switch
             {
-                return Unauthorized("الإيميل أو كلمة المرور غير صحيحة.");
-            }
-
-            return Ok(new { 
-                message = "تم تسجيل الدخول بنجاح", 
-                adminId = user.UserId, // تم التعديل لـ UserId
-                fullName = user.FullName 
-            });
+                "january" or "1" => 1,
+                "february" or "2" => 2,
+                "march" or "3" => 3,
+                "april" or "4" => 4,
+                "may" or "5" => 5,
+                "june" or "6" => 6,
+                "july" or "7" => 7,
+                "august" or "8" => 8,
+                "september" or "9" => 9,
+                "october" or "10" => 10,
+                "november" or "11" => 11,
+                "december" or "12" => 12,
+                _ => 1 // القيمة الافتراضية شهر يناير
+            };
         }
     }
 
-    // كلاس وسيط لعملية التسجيل (عشان الـ Swagger يطلب بيانات محددة بس)
-    public class AdminRegisterDto
+    // الـ DTOs المحدثة بناءً على واجهة المستخدم
+    public class RegisterRequestDto
     {
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
+        public required string EmailOrPhone { get; set; }
+        public required string Password { get; set; }
+        public int BirthDay { get; set; }
+        public string BirthMonth { get; set; } = "January";
+        public int BirthYear { get; set; }
+        public string Gender { get; set; } = "Not Specified";
+    }
+
+    public class LoginRequestDto
+    {
+        public required string EmailOrPhone { get; set; }
+        public required string Password { get; set; }
     }
 }

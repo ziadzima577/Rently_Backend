@@ -45,7 +45,7 @@ namespace login.rently.Controllers
             {
                 birthDate = new DateTime(model.BirthYear, GetMonthNumber(model.BirthMonth), model.BirthDay);
             }
-            catch { /* في حال كان التاريخ غير صحيح */ }
+            catch {  }
 
             var newAdmin = new Admin
             {
@@ -53,7 +53,7 @@ namespace login.rently.Controllers
                 LastName = model.LastName,
                 Email = email ?? $"user_{Guid.NewGuid().ToString().Substring(0, 8)}@rently.com",
                 PhoneNumber = phone,
-                PasswordHash = model.Password,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                 BirthDate = birthDate,
                 Gender = model.Gender,
                 CreatedAt = DateTime.Now
